@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confess Screen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 1. Halaman Click Anywhere */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 999;
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .welcome-text {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            animation: blink 2s infinite; 
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        /* Wadah Utama Kotak Putih */
+        .container {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            display: none;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .container.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .title-text {
+            color: #a4133c;
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .subtitle-text {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        /* Teks tebal khusus */
+        .bold-style {
+            color: #a4133c;
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* Kotak Input Jawaban */
+        .input-answer {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ffb3c1;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            outline: none;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .input-answer:focus {
+            border-color: #ff4d6d;
+        }
+
+        .error-message {
+            color: #e63946;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        /* Flexbox untuk tombol */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            min-height: 80px;
+        }
+
+        /* Desain Umum Tombol */
+        .btn-style {
+            padding: 12px 35px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background-color: #2a9d8f;
+            color: white;
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .btn-style:active {
+            transform: scale(0.95);
+        }
+
+        #btn-giveup {
+            background-color: #e63946;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+            display: none;
+        }
+
+        /* Desain Tombol Yes & No Khusus */
+        #btn-yes {
+            background-color: #2a9d8f;
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #btn-no {
+            background-color: #e63946;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* TOMBOL RAHASIA DI POJOK KANAN ATAS LAYAR (DI LUAR KOTAK PUTIH) */
+        #btn-secret {
+            display: none;
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: normal; /* Font ga tebel */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            /* Disamakan dengan background pojok kanan atas (daerah #ff4d6d), dibedakan tipis */
+            background-color: #fd4364; 
+            color: rgba(255, 255, 255, 0.2); /* Sangat samar menyatu background */
+            box-shadow: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #btn-secret:hover {
+            background-color: #f13c5c;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Styling khusus untuk Long Text */
+        .long-text-content {
+            text-align: left;
+            font-size: 15px;
+            color: #444;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 20px;
+            white-space: pre-line;
+            font-weight: 400; /* Font tipis/tidak tebal sesuai request */
+        }
+
+        /* Kursor berkedip animasi mengetik */
+        .typing-effect::after {
+            content: '︳';
+            animation: blink 0.7s infinite;
+        }
+
+        /* Animasi Pop-up Loncat */
+        .reveal-answer {
+            font-size: 24px;
+            color: #ff4d6d;
+            font-weight: 800;
+            margin-top: 20px;
+            display: none;
+            animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); }
+            50% { opacity: 1; transform: scale3d(1.2, 1.2, 1.2); }
+            70% { transform: scale3d(0.9, 0.9, 0.9); }
+            100% { transform: scale3d(1, 1, 1); }
+        }
+
+        .typing::after {
+            content: '|';
+            animation: blink 0.7s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="welcome-screen">
+        <div class="welcome-text">Click anywhere to continue... ✨</div>
+    </div>
+
+    <div class="container" id="page-greeting">
+        <h1 class="title-text">hyyy sheyy..</h1>
+        <p class="subtitle-text">aku mau ngomong sesuatu nihh wkwk</p>
+        <button class="btn-style" id="btn-next-1">nexttt✨</button>
+    </div>
+
+    <div class="container" id="page-pre-riddle">
+        <h1 class="title-text">sebelum ituu...</h1>
+        <p class="subtitle-text">aku ada tebak tebakan nih</p>
+        <button class="btn-style" id="btn-next-2">lanjuttt</button>
+    </div>
+
+    <div class="container" id="page-riddle">
+        <h1 class="title-text typing" id="riddle-text"></h1>
+        <input type="text" class="input-answer" id="answer-input" placeholder="Ketik jawabanmu di sini..." autocomplete="off">
+        <p class="error-message" id="error-txt">Salah ih! Coba pikir lagi 😜</p>
+        
+        <div class="button-group">
+            <button class="btn-style" id="btn-submit-answer">Kirim</button>
+            <button class="btn-style" id="btn-giveup">nyerahh??</button>
+        </div>
+
+        <div class="reveal-answer" id="revealed-answer-box">Jawabannya: i kan kamu 🥰</div>
+    </div>
+
+    <div class="container" id="page-apology">
+        <h1 class="bold-apology">g lucu yh, maaf yah</h1>
+        <button class="btn-style" id="btn-next-3">Lanjut</button>
+    </div>
+
+    <div class="container" id="page-so-shey">
+        <h1 class="bold-style">jadii shey..</h1>
+        <button class="btn-style" id="btn-next-4">.....</button>
+    </div>
+
+    <div class="container" id="page-weird-but">
+        <h1 class="title-text" style="font-style: italic; font-weight: 600;">i dont wanna look weird but..</h1>
+        <button class="btn-style" id="btn-next-5">Lanjut</button>
+    </div>
+
+    <div class="container" id="page-proposal">
+        <h1 class="bold-style">Do you want to be in a relationship with me?</h1>
+        <div class="button-group">
+            <button class="btn-style" id="btn-yes">hell yeah</button>
+            <button class="btn-style" id="btn-no">no</button>
+        </div>
+    </div>
+
+    <div class="container" id="page-yippie">
+        <h1 class="bold-style" style="color: #ff4d6d; margin-bottom: 10px;">YIPPIEEE</h1>
+        <p class="subtitle-text" style="font-weight: bold;">akuu tauu kamu pasti milih iyaa wkwk</p>
+        <p class="subtitle-text" style="font-size: 14px; color: #666;">ak harap kamu ga ilfeel yh sama ini</p>
+        <p class="subtitle-text" style="font-size: 14px; color: #888; font-style: italic; margin-bottom: 30px;">kalo kamu emang mau nolak, chat aja..</p>
+        <button class="btn-style" id="btn-next-6">Lanjut</button>
+    </div>
+
+    <div class="container" id="page-final-notice">
+        <p class="subtitle-text" style="font-weight: bold; color: #a4133c; font-size: 18px;">kalo kamu baca ini..</p>
+        <p class="subtitle-text">berarti hp ku lagi di restart wkwk, beresiko soalnya..</p>
+        <p class="subtitle-text" style="font-style: italic; color: #666; margin-bottom: 30px;">jadi kalau kamu chat akuu mungkin aku jawab 1-2 jam lagi..</p>
+        <button class="btn-style" id="btn-ok-notice" style="background-color: #ff4d6d; box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);">okaayy</button>
+    </div>
+
+    <div class="container" id="page-uda-itu-aja">
+        <h1 class="title-text" style="margin-bottom: 0; font-weight: normal;">udaa itu aja</h1>
+    </div>
+
+    <button id="btn-secret">?????</button>
+
+    <div class="container" id="page-long-text">
+        <h1 class="title-text" style="font-size: 22px; margin-bottom: 20px;">hehe</h1>
+        <div class="long-text-content typing-effect" id="typed-long-text"></div>
+        <button class="btn-style" id="btn-finish" style="background-color: #2a9d8f; display: none;">udaaa</button>
+    </div>
+
+    <script>
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const pageGreeting = document.getElementById('page-greeting');
+        const pagePreRiddle = document.getElementById('page-pre-riddle');
+        const pageRiddle = document.getElementById('page-riddle');
+        const pageApology = document.getElementById('page-apology');
+        const pageSoShey = document.getElementById('page-so-shey');
+        const pageWeirdBut = document.getElementById('page-weird-but');
+        const pageProposal = document.getElementById('page-proposal');
+        const pageYippie = document.getElementById('page-yippie');
+        const pageFinalNotice = document.getElementById('page-final-notice');
+        const pageUdaItuAja = document.getElementById('page-uda-itu-aja');
+        const pageLongText = document.getElementById('page-long-text');
+
+        const btnNext1 = document.getElementById('btn-next-1');
+        const btnNext2 = document.getElementById('btn-next-2');
+        const btnSubmitAnswer = document.getElementById('btn-submit-answer');
+        const btnGiveUp = document.getElementById('btn-giveup');
+        const btnNext3 = document.getElementById('btn-next-3');
+        const btnNext4 = document.getElementById('btn-next-4');
+        const btnNext5 = document.getElementById('btn-next-5');
+        const btnYes = document.getElementById('btn-yes');
+        const btnNo = document.getElementById('btn-no');
+        const btnNext6 = document.getElementById('btn-next-6');
+        const btnOkNotice = document.getElementById('btn-ok-notice');
+        const btnSecret = document.getElementById('btn-secret');
+        const btnFinish = document.getElementById('btn-finish');
+        
+        const riddleText = document.getElementById('riddle-text');
+        const answerInput = document.getElementById('answer-input');
+        const errorTxt = document.getElementById('error-txt');
+        const revealedAnswerBox = document.getElementById('revealed-answer-box');
+        const typedLongTextBox = document.getElementById('typed-long-text');
+
+        let wrongCount = 0;
+        let noClickCount = 0; 
+        
+        let yesFontSize = 16;
+        let yesPaddingY = 12;
+        let yesPaddingX = 35;
+        
+        let noFontSize = 16;
+        let noPaddingY = 12;
+        let noPaddingX = 35;
+
+        // ISI SURAT PANJANG KAMU DI SINI
+        const myLongTextSecret = `hiii,jeli jugaa mata kamu yh,aku.. jujur aja masi takut buat ngelakuin ini.. pas kamu kasi aku warning,aku malah jadi tambah ragu..karena aku pikir kamu masii apa ya.. kayak kamu masi suka sama your mantan atau apaa gitu kan wkwk,sekarang..walaupun kamu nolak,aku gamasalah kok..tapii yaaa.. gitu wkwk.jujur ajh aku.. takut kalo kamu ternyata cuman hargain aku.. emm apa lagi ya.. kayaknya udah,byeeeee`;
+
+        // 1. Click Anywhere -> Sapaan
+        welcomeScreen.addEventListener('click', () => {
+            welcomeScreen.style.opacity = '0';
+            welcomeScreen.style.visibility = 'hidden';
+            pageGreeting.classList.add('show');
+        });
+
+        // 2. Sapaan -> Sebelum ituu
+        btnNext1.addEventListener('click', () => {
+            pageGreeting.classList.remove('show');
+            setTimeout(() => {
+                pageGreeting.style.display = 'none';
+                pagePreRiddle.style.display = 'block';
+                setTimeout(() => pagePreRiddle.classList.add('show'), 50);
+            }, 400);
+        });
+
+        // 3. Sebelum ituu -> Tebak-tebakan
+        btnNext2.addEventListener('click', () => {
+            pagePreRiddle.classList.remove('show');
+            setTimeout(() => {
+                pagePreRiddle.style.display = 'none';
+                pageRiddle.style.display = 'block';
+                setTimeout(() => pageRiddle.classList.add('show'), 50);
+                
+                startTypingAnimation("ikann ikan apa yang lucu?");
+            }, 400);
+        });
+
+        function startTypingAnimation(text) {
+            let i = 0;
+            riddleText.innerHTML = "";
+            function type() {
+                if (i < text.length) {
+                    riddleText.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, 100);
+                }
+            }
+            type();
+        }
+
+        function goToApologyPage() {
+            pageRiddle.classList.remove('show');
+            setTimeout(() => {
+                pageRiddle.style.display = 'none';
+                pageApology.style.display = 'block';
+                setTimeout(() => pageApology.classList.add('show'), 50);
+            }, 400);
+        }
+
+        // 4. Logika Pengecekan Jawaban
+        btnSubmitAnswer.addEventListener('click', () => {
+            const userAnswer = answerInput.value.toLowerCase().trim(); 
+
+            if (userAnswer === "i kan kamu") {
+                errorTxt.style.display = 'none';
+                goToApologyPage(); 
+            } else {
+                wrongCount++;
+                errorTxt.style.display = 'block';
+                answerInput.style.borderColor = '#e63946';
+
+                if (wrongCount >= 3) {
+                    btnGiveUp.style.display = 'inline-block';
+                }
+            }
+        });
+
+        // 5. Logika ketika tombol "nyerahh??" diklik
+        btnGiveUp.addEventListener('click', () => {
+            errorTxt.style.display = 'none';
+            revealedAnswerBox.style.display = 'block';
+            
+            btnSubmitAnswer.innerText = "Lanjut";
+            btnGiveUp.style.display = 'none';
+            
+            btnSubmitAnswer.replaceWith(btnSubmitAnswer.cloneNode(true));
+            const newBtnSubmit = document.getElementById('btn-submit-answer');
+            newBtnSubmit.addEventListener('click', goToApologyPage);
+            
+            answerInput.value = "i kan kamu"; 
+            answerInput.style.borderColor = '#2a9d8f';
+            answerInput.disabled = true;
+        });
+
+        // 6. Tombol Lanjut di halaman maaf -> Pindah ke "jadii shey.."
+        btnNext3.addEventListener('click', () => {
+            pageApology.classList.remove('show');
+            setTimeout(() => {
+                pageApology.style.display = 'none';
+                pageSoShey.style.display = 'block';
+                setTimeout(() => pageSoShey.classList.add('show'), 50);
+            }, 400);
+        });
+
+        // 7. Tombol "....." -> Pindah ke "i dont wanna look weird but..
+        btnNext4.addEventListener('click', () => {
+            pageSoShey.classList.remove('show');
+            setTimeout(() => {
+                pageSoShey.style.display = 'none';
+                pageWeirdBut.style.display = 'block';
+                setTimeout(() => pageWeirdBut.classList.add('show'), 50);
+            }, 400);
+        });
+
+        // 8. Tombol Lanjut di halaman miring -> Pindah ke Pertanyaan Utama
+        btnNext5.addEventListener('click', () => {
+            pageWeirdBut.classList.remove('show');
+            setTimeout(() => {
+                pageWeirdBut.style.display = 'none';
+                pageProposal.style.display = 'block';
+                setTimeout(() => pageProposal.classList.add('show'), 50);
+            }, 400);
+        });
+
+        // 9. Logika Tombol "No" yang Mengecil
+        btnNo.addEventListener('click', () => {
+            noClickCount++;
+
+            yesFontSize += 15;
+            yesPaddingY += 8;
+            yesPaddingX += 20;
+            btnYes.style.fontSize = yesFontSize + "px";
+            btnYes.style.padding = `${yesPaddingY}px ${yesPaddingX}px`;
+
+            if (noClickCount === 1) {
+                btnNo.innerText = "are you sure?";
+                noFontSize -= 2;
+                noPaddingY -= 2;
+                noPaddingX -= 5;
+            } else if (noClickCount === 2) {
+                btnNo.innerText = "come on man..";
+                noFontSize -= 2;
+                noPaddingY -= 2;
+                noPaddingX -= 5;
+            } else if (noClickCount === 3) {
+                btnNo.innerText = "awh.. man..";
+                noFontSize -= 3;
+                noPaddingY -= 2;
+                noPaddingX -= 5;
+            } else if (noClickCount >= 4) {
+                btnNo.style.display = "none";
+            }
+
+            if (noClickCount < 4) {
+                btnNo.style.fontSize = noFontSize + "px";
+                btnNo.style.padding = `${noPaddingY}px ${noPaddingX}px`;
+            }
+        });
+
+        // 10. Tombol "hell yeah" -> Pindah ke halaman YIPPIEEE
+        btnYes.addEventListener('click', () => {
+            pageProposal.classList.remove('show');
+            setTimeout(() => {
+                pageProposal.style.display = 'none';
+                pageYippie.style.display = 'block';
+                setTimeout(() => pageYippie.classList.add('show'), 50);
+            }, 400);
+        });
+
+        // 11. Tombol Lanjut di halaman YIPPIEEE -> Pindah ke Halaman Notifikasi HP
+        btnNext6.addEventListener('click', () => {
+            pageYippie.classList.remove('show');
+            setTimeout(() => {
+                pageYippie.style.display = 'none';
+                pageFinalNotice.style.display = 'block';
+                setTimeout(() => pageFinalNotice.classList.add('show'), 50);
+            }, 400);
+        });
+
+        // 12. Tombol "okaayy" -> Ke Halaman "udaa itu aja" & Aktifkan tombol rahasia pojok kanan atas
+        btnOkNotice.addEventListener('click', () => {
+            pageFinalNotice.classList.remove('show');
+            setTimeout(() => {
+                pageFinalNotice.style.display = 'none';
+                pageUdaItuAja.style.display = 'block';
+                setTimeout(() => {
+                    pageUdaItuAja.classList.add('show');
+                    btnSecret.style.display = 'block';
+                }, 50);
+            }, 400);
+        });
+
+        // 13. Tombol "?????" -> Pindah ke Surat Panjang & Picu Efek Mengetik Otomatis
+        btnSecret.addEventListener('click', () => {
+            pageUdaItuAja.classList.remove('show');
+            btnSecret.style.display = 'none';
+            setTimeout(() => {
+                pageUdaItuAja.style.display = 'none';
+                pageLongText.style.display = 'block';
+                setTimeout(() => {
+                    pageLongText.classList.add('show');
+                    startLongTextTyping(myLongTextSecret); // Mulai ngetik surat
+                }, 50);
+            }, 400);
+        });
+
+        // Fungsi khusus animasi mengetik teks surat panjang
+        function startLongTextTyping(text) {
+            let index = 0;
+            typedLongTextBox.innerHTML = "";
+            
+            function typeLetter() {
+                if (index < text.length) {
+                    typedLongTextBox.innerHTML += text.charAt(index);
+                    index++;
+                    // Kecepatan mengetik (semakin kecil angkanya, makin cepat ngetiknya)
+                    setTimeout(typeLetter, 35); 
+                } else {
+                    // Setelah beres ngetik semua, hilangkan kursor kedip dan munculkan tombol selesai
+                    typedLongTextBox.classList.remove('typing-effect');
+                    btnFinish.style.display = 'inline-block';
+                }
+            }
+            typeLetter();
+        }
+
+        // 14. Tombol Selesai Akhir
+        btnFinish.addEventListener('click', () => {
+            alert("❤️");
+        });
+    </script>
+</body>
+</html>
